@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Process Analysis — Patient Intake Optimization | Karar Syed</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #efefec;
+    --text: #1a1a1a;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --success-bg: #eaf3de;
+    --success-text: #3b6d11;
+    --success-border: #97c459;
+    --danger-bg: #fcebeb;
+    --danger-text: #791f1f;
+    --danger-border: #f09595;
+    --warning-bg: #faeeda;
+    --warning-text: #854f0b;
+    --info-bg: #e6f1fb;
+    --info-text: #185fa5;
+    --accent: #185fa5;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg2: #282825;
+      --bg3: #323230;
+      --text: #e8e6de;
+      --text2: #a8a69e;
+      --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --success-bg: #1a2e0f;
+      --success-text: #97c459;
+      --success-border: #3b6d11;
+      --danger-bg: #2e1212;
+      --danger-text: #f09595;
+      --danger-border: #791f1f;
+      --warning-bg: #2e1f08;
+      --warning-text: #fac775;
+      --info-bg: #0c1e33;
+      --info-text: #85b7eb;
+      --accent: #85b7eb;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+
+  .portfolio-header {
+    padding: 1.75rem 2rem 1.25rem;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--info-bg);
+    color: var(--info-text);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px;
+    border: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .header-name { font-size: 13px; color: var(--text2); }
+  .header-name strong { color: var(--text); font-weight: 500; }
+  .portfolio-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .portfolio-header p {
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text2);
+  }
+
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 1.5rem;
+    overflow-x: auto;
+    background: var(--bg);
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text2);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 12px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active {
+    color: var(--text);
+    font-weight: 500;
+    border-bottom-color: var(--text);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .tab-panel { display: none; padding: 1.5rem 2rem 2rem; }
+  .tab-panel.active { display: block; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .metric-card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .metric-card .label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .metric-card .value { font-size: 24px; font-weight: 600; color: var(--text); }
+  .metric-card .delta { font-size: 12px; margin-top: 3px; }
+  .delta.up { color: var(--success-text); }
+  .delta.down { color: var(--danger-text); }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .process-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 560px) { .process-grid { grid-template-columns: 1fr; } }
+
+  .flow-title {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin-bottom: 0;
+    border: 0.5px solid var(--border);
+    border-bottom: none;
+  }
+  .flow-title.bad { background: var(--danger-bg); color: var(--danger-text); }
+  .flow-title.good { background: var(--success-bg); color: var(--success-text); }
+
+  .flow-box {
+    border: 0.5px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--border);
+    position: relative;
+  }
+  .flow-step:last-child { border-bottom: none; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-num.bad { background: var(--danger-bg); color: var(--danger-text); }
+  .step-num.good { background: var(--success-bg); color: var(--success-text); }
+  .step-content .step-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .step-content .step-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .step-time {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .step-time.bad { background: var(--danger-bg); color: var(--danger-text); }
+  .step-time.good { background: var(--success-bg); color: var(--success-text); }
+  .flow-total {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .flow-total.bad { background: var(--danger-bg); color: var(--danger-text); }
+  .flow-total.good { background: var(--success-bg); color: var(--success-text); }
+
+  .gap-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  .gap-table th {
+    font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--text2); text-align: left;
+    padding: 8px 10px; border-bottom: 0.5px solid var(--border);
+  }
+  .gap-table td {
+    padding: 10px; vertical-align: top;
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text); line-height: 1.5;
+  }
+  .gap-table tr:last-child td { border-bottom: none; }
+  .gap-table tr:hover td { background: var(--bg2); }
+
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 20px;
+  }
+  .badge.red { background: var(--danger-bg); color: var(--danger-text); }
+  .badge.green { background: var(--success-bg); color: var(--success-text); }
+  .badge.amber { background: var(--warning-bg); color: var(--warning-text); }
+
+  .brd-section { margin-bottom: 1.25rem; }
+  .brd-section:last-child { margin-bottom: 0; }
+  .brd-section h4 {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text3); margin-bottom: 8px;
+  }
+  .brd-section p, .brd-section li {
+    font-size: 13px; color: var(--text); line-height: 1.7;
+  }
+  .brd-section ul { padding-left: 1.4rem; }
+  .brd-section li { margin-bottom: 4px; }
+
+  .req-row {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 13px;
+  }
+  .req-row:last-child { border-bottom: none; }
+  .req-id {
+    font-size: 11px; font-weight: 600;
+    background: var(--bg2); border-radius: var(--radius);
+    padding: 2px 8px; color: var(--text2);
+    white-space: nowrap; margin-top: 1px; flex-shrink: 0;
+  }
+  .req-text { color: var(--text); line-height: 1.5; flex: 1; }
+  .req-priority {
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  }
+  .p1 { background: var(--danger-bg); color: var(--danger-text); }
+  .p2 { background: var(--warning-bg); color: var(--warning-text); }
+  .p3 { background: var(--info-bg); color: var(--info-text); }
+
+  .roi-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; gap: 1rem;
+  }
+  .roi-row:last-child { border-bottom: none; }
+  .roi-row .item { color: var(--text2); flex: 1; line-height: 1.5; }
+  .roi-row .amount { font-weight: 500; color: var(--text); white-space: nowrap; }
+  .roi-total {
+    display: flex; justify-content: space-between;
+    padding: 14px 0 0; font-weight: 600; font-size: 15px; color: var(--text);
+    border-top: 1px solid var(--border2); margin-top: 4px;
+  }
+  .highlight-box {
+    background: var(--success-bg); border-radius: var(--radius);
+    padding: 12px 16px; margin-top: 14px;
+    font-size: 13px; color: var(--success-text); font-weight: 500;
+    line-height: 1.6;
+  }
+  .chart-legend {
+    display: flex; gap: 14px; margin-bottom: 10px;
+    font-size: 12px; color: var(--text2); flex-wrap: wrap;
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch {
+    width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+  }
+  .footer {
+    padding: 1rem 2rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 12px;
+    color: var(--text3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--bg2);
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="portfolio-header">
+    <div class="header-meta">
+      <div class="avatar">KS</div>
+      <div class="header-name"><strong>Karar Syed</strong> · Business Analyst Portfolio</div>
+    </div>
+    <h1>Business process analysis — patient intake optimization</h1>
+    <p>A full BA case study: process mapping, gap analysis, KPI dashboard, requirements documentation, and ROI model applied to a real healthcare service coordination workflow.</p>
+    <div class="tags">
+      <span class="tag">Business Analysis</span>
+      <span class="tag">Process Optimization</span>
+      <span class="tag">EHR / ERP</span>
+      <span class="tag">As-Is / To-Be Mapping</span>
+      <span class="tag">KPI Dashboards</span>
+      <span class="tag">Requirements Doc</span>
+      <span class="tag">ROI Modeling</span>
+      <span class="tag">Healthcare</span>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('process', this)">Process map</button>
+    <button class="tab-btn" onclick="showTab('gap', this)">Gap analysis</button>
+    <button class="tab-btn" onclick="showTab('kpi', this)">KPI dashboard</button>
+    <button class="tab-btn" onclick="showTab('brd', this)">Requirements doc</button>
+    <button class="tab-btn" onclick="showTab('roi', this)">ROI model</button>
+  </nav>
+
+  <!-- PROCESS MAP -->
+  <div id="tab-process" class="tab-panel active">
+    <div class="section-label">As-is vs To-be process flow</div>
+    <div class="process-grid">
+      <div>
+        <div class="flow-title bad">❌ As-is — current state</div>
+        <div class="flow-box">
+          <div class="flow-step"><span class="step-num bad">1</span><div class="step-content"><div class="step-name">Client calls in</div><div class="step-sub">Phone only, no digital option</div></div><span class="step-time bad">18 min hold</span></div>
+          <div class="flow-step"><span class="step-num bad">2</span><div class="step-content"><div class="step-name">Paper intake form</div><div class="step-sub">Manual, error-prone capture</div></div><span class="step-time bad">Same day</span></div>
+          <div class="flow-step"><span class="step-num bad">3</span><div class="step-content"><div class="step-name">Manual EHR data entry</div><div class="step-sub">Duplicate records, 22% error rate</div></div><span class="step-time bad">1–2 day delay</span></div>
+          <div class="flow-step"><span class="step-num bad">4</span><div class="step-content"><div class="step-name">Coordinator manual review</div><div class="step-sub">No routing logic, no visibility</div></div><span class="step-time bad">3-day delay</span></div>
+          <div class="flow-step"><span class="step-num bad">5</span><div class="step-content"><div class="step-name">Service plan created</div><div class="step-sub">No template, inconsistent quality</div></div><span class="step-time bad">1–2 days</span></div>
+          <div class="flow-step"><span class="step-num bad">6</span><div class="step-content"><div class="step-name">Client onboarded</div><div class="step-sub">No status updates sent</div></div><span class="step-time bad">Variable</span></div>
+          <div class="flow-total bad">Total: 7–10 business days</div>
+        </div>
+      </div>
+      <div>
+        <div class="flow-title good">✅ To-be — optimized state</div>
+        <div class="flow-box">
+          <div class="flow-step"><span class="step-num good">1</span><div class="step-content"><div class="step-name">Multi-channel intake</div><div class="step-sub">Phone, web portal, or mobile app</div></div><span class="step-time good">Instant</span></div>
+          <div class="flow-step"><span class="step-num good">2</span><div class="step-content"><div class="step-name">Digital intake form</div><div class="step-sub">Validated, structured, EHR-linked</div></div><span class="step-time good">Same day</span></div>
+          <div class="flow-step"><span class="step-num good">3</span><div class="step-content"><div class="step-name">Auto EHR population</div><div class="step-sub">Zero manual re-entry, no duplicates</div></div><span class="step-time good">Auto-sync</span></div>
+          <div class="flow-step"><span class="step-num good">4</span><div class="step-content"><div class="step-name">Smart triage queue</div><div class="step-sub">Priority scoring, real-time view</div></div><span class="step-time good">Auto-routed</span></div>
+          <div class="flow-step"><span class="step-num good">5</span><div class="step-content"><div class="step-name">Templated success plan</div><div class="step-sub">Standardized, KPI-tracked</div></div><span class="step-time good">Same day</span></div>
+          <div class="flow-step"><span class="step-num good">6</span><div class="step-content"><div class="step-name">Client onboarded</div><div class="step-sub">Automated status updates sent</div></div><span class="step-time good">Day 1–2</span></div>
+          <div class="flow-total good">Total: 1–2 business days ↓ 78%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAP ANALYSIS -->
+  <div id="tab-gap" class="tab-panel">
+    <div class="section-label">Gap analysis — current vs optimized state</div>
+    <div class="metric-row">
+      <div class="metric-card"><div class="label">Intake time reduction</div><div class="value">78%</div><div class="delta up">7–10 days → 1–2 days</div></div>
+      <div class="metric-card"><div class="label">Data entry errors</div><div class="value">−65%</div><div class="delta up">Via EHR auto-sync</div></div>
+      <div class="metric-card"><div class="label">Coordinator capacity</div><div class="value">+40%</div><div class="delta up">Hours freed per week</div></div>
+      <div class="metric-card"><div class="label">Client satisfaction</div><div class="value">+28%</div><div class="delta up">Projected CSAT lift</div></div>
+    </div>
+    <div class="card">
+      <h3>Process gap breakdown</h3>
+      <table class="gap-table">
+        <thead><tr><th>Process area</th><th>Current state</th><th>Target state</th><th>Severity</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Intake channel</strong></td><td>Phone only, 18-min avg hold</td><td>Omni-channel: phone, portal, app</td><td><span class="badge red">Critical</span></td><td>IT + Operations</td></tr>
+          <tr><td><strong>Form capture</strong></td><td>Paper forms, manual transcription</td><td>Digital form with EHR auto-sync</td><td><span class="badge red">Critical</span></td><td>IT + Clinical</td></tr>
+          <tr><td><strong>Triage routing</strong></td><td>Manual review, 3-day avg delay</td><td>Auto-routing with priority scoring</td><td><span class="badge red">Critical</span></td><td>Operations</td></tr>
+          <tr><td><strong>Success planning</strong></td><td>No template, coordinator-dependent</td><td>Standardized template + KPI tracking</td><td><span class="badge amber">High</span></td><td>Service Coord.</td></tr>
+          <tr><td><strong>Status visibility</strong></td><td>No real-time tracking for clients</td><td>Client portal with status updates</td><td><span class="badge amber">High</span></td><td>IT + Operations</td></tr>
+          <tr><td><strong>Data quality</strong></td><td>Duplicate records, no validation rules</td><td>Validation logic + dedup process</td><td><span class="badge amber">High</span></td><td>IT</td></tr>
+          <tr><td><strong>Reporting</strong></td><td>Manual spreadsheet exports</td><td>Live KPI dashboard (Power BI)</td><td><span class="badge green">Medium</span></td><td>Analytics</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KPI DASHBOARD -->
+  <div id="tab-kpi" class="tab-panel">
+    <div class="section-label">Key performance indicators — service coordination</div>
+    <div class="metric-row">
+      <div class="metric-card"><div class="label">Avg intake time</div><div class="value">2.1d</div><div class="delta up">↓ from 8.4d</div></div>
+      <div class="metric-card"><div class="label">Retention rate</div><div class="value">89%</div><div class="delta up">↑ from 74%</div></div>
+      <div class="metric-card"><div class="label">Plan completion</div><div class="value">94%</div><div class="delta up">↑ from 61%</div></div>
+      <div class="metric-card"><div class="label">Active accounts</div><div class="value">52</div><div class="delta up">↑ from 38 cap</div></div>
+    </div>
+    <div class="card">
+      <h3>Monthly intake volume &amp; resolution time</h3>
+      <div class="chart-legend">
+        <span><span class="legend-swatch" style="background:#378ADD;"></span>New intakes</span>
+        <span><span class="legend-swatch" style="background:#639922;border:1px dashed #3B6D11;"></span>Avg days to resolve</span>
+      </div>
+      <div style="position:relative;width:100%;height:220px;"><canvas id="kpiChart1" role="img" aria-label="Combined bar and line chart. Bars show monthly intake volume rising from 18 in January to 31 in June. Line shows average resolution days falling from 8.4 to 2.1.">Monthly intakes: Jan 18, Feb 21, Mar 24, Apr 27, May 29, Jun 31. Resolution days: Jan 8.4, Feb 7.1, Mar 5.8, Apr 4.2, May 3.0, Jun 2.1.</canvas></div>
+    </div>
+    <div class="card">
+      <h3>Retention rate trend (%)</h3>
+      <div class="chart-legend">
+        <span><span class="legend-swatch" style="background:#1D9E75;"></span>Retention rate</span>
+      </div>
+      <div style="position:relative;width:100%;height:180px;"><canvas id="kpiChart2" role="img" aria-label="Line chart showing retention rate improving from 74% in January to 89% in June.">Retention: Jan 74%, Feb 76%, Mar 79%, Apr 83%, May 87%, Jun 89%.</canvas></div>
+    </div>
+  </div>
+
+  <!-- BRD -->
+  <div id="tab-brd" class="tab-panel">
+    <div class="section-label">Business requirements document (BRD)</div>
+    <div class="card">
+      <div class="brd-section">
+        <h4>Project overview</h4>
+        <p>Redesign of the patient intake and service coordination workflow at Integral Care to reduce time-to-service, eliminate manual data entry errors, and enable coordinators to manage a larger account portfolio through digital automation and standardized processes.</p>
+      </div>
+      <div class="brd-section">
+        <h4>Business problem</h4>
+        <p>The current intake process averages 7–10 days due to manual paper forms, phone-only access, and no automated routing. Coordinators spend an estimated 35% of weekly capacity on data entry tasks rather than client-facing work. Error rates in EHR records are estimated at 22%, leading to duplicate outreach and delayed care plans.</p>
+      </div>
+      <div class="brd-section">
+        <h4>Stakeholders</h4>
+        <ul>
+          <li><strong>Service coordinators</strong> — primary users of intake and EHR workflows</li>
+          <li><strong>Clinical team</strong> — downstream consumers of intake data for care planning</li>
+          <li><strong>IT department</strong> — responsible for EHR configuration and portal build</li>
+          <li><strong>Operations leadership</strong> — accountable for capacity and retention KPIs</li>
+          <li><strong>Clients / patients</strong> — end users of the intake experience</li>
+        </ul>
+      </div>
+      <div class="brd-section">
+        <h4>Functional requirements</h4>
+        <div class="req-row"><span class="req-id">FR-01</span><span class="req-text">System shall provide a digital intake form accessible via web portal and mobile, with field validation and required field enforcement.</span><span class="req-priority p1">P1</span></div>
+        <div class="req-row"><span class="req-id">FR-02</span><span class="req-text">Completed intake forms shall automatically populate corresponding fields in the EHR (My Avatar NX) without manual re-entry.</span><span class="req-priority p1">P1</span></div>
+        <div class="req-row"><span class="req-id">FR-03</span><span class="req-text">System shall auto-route new intakes to the appropriate service coordinator based on availability and caseload rules.</span><span class="req-priority p1">P1</span></div>
+        <div class="req-row"><span class="req-id">FR-04</span><span class="req-text">Coordinators shall have access to a real-time triage queue with priority scoring based on urgency flags and wait time.</span><span class="req-priority p1">P1</span></div>
+        <div class="req-row"><span class="req-id">FR-05</span><span class="req-text">System shall provide standardized success plan templates with pre-populated fields derived from intake data.</span><span class="req-priority p2">P2</span></div>
+        <div class="req-row"><span class="req-id">FR-06</span><span class="req-text">Clients shall receive automated status updates at key workflow milestones (intake received, coordinator assigned, plan created).</span><span class="req-priority p2">P2</span></div>
+        <div class="req-row"><span class="req-id">FR-07</span><span class="req-text">A Power BI dashboard shall display real-time KPIs including intake volume, resolution time, retention rate, and plan completion rate.</span><span class="req-priority p3">P3</span></div>
+      </div>
+      <div class="brd-section">
+        <h4>Constraints</h4>
+        <ul>
+          <li>Must comply with HIPAA data privacy requirements</li>
+          <li>EHR (My Avatar NX) integration must not disrupt existing clinical workflows</li>
+          <li>Implementation timeline: 90 days for Phase 1 (FR-01 through FR-04)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROI -->
+  <div id="tab-roi" class="tab-panel">
+    <div class="section-label">ROI model — process optimization financial impact</div>
+    <div class="metric-row">
+      <div class="metric-card"><div class="label">Annual cost savings</div><div class="value">$87K</div><div class="delta up">Staff time recovered</div></div>
+      <div class="metric-card"><div class="label">Implementation cost</div><div class="value">$42K</div><div class="delta down">One-time investment</div></div>
+      <div class="metric-card"><div class="label">Payback period</div><div class="value">5.8mo</div><div class="delta up">Break-even point</div></div>
+      <div class="metric-card"><div class="label">3-year ROI</div><div class="value">521%</div><div class="delta up">Net positive value</div></div>
+    </div>
+    <div class="card">
+      <h3>Annual savings breakdown</h3>
+      <div class="roi-row"><span class="item">Coordinator time recovered (35% → 10% on data entry · 4 FTE × $28/hr × 520 hrs/yr)</span><span class="amount">$58,240</span></div>
+      <div class="roi-row"><span class="item">Error correction reduction (22% error rate × 8 hrs/error × 120 intakes/yr × $28/hr)</span><span class="amount">$7,450</span></div>
+      <div class="roi-row"><span class="item">Faster onboarding — reduced no-show rate (5% improvement × 50 clients × $140 avg service value)</span><span class="amount">$7,000</span></div>
+      <div class="roi-row"><span class="item">Retention improvement — 15% fewer exits × 50 clients × $200 avg annual service value</span><span class="amount">$15,000</span></div>
+      <div class="roi-total"><span>Total annual benefit</span><span>$87,690</span></div>
+    </div>
+    <div class="card">
+      <h3>Implementation cost estimate</h3>
+      <div class="roi-row"><span class="item">Digital intake portal development (vendor estimate)</span><span class="amount">$18,000</span></div>
+      <div class="roi-row"><span class="item">EHR integration configuration (IT · 120 hrs × $95/hr)</span><span class="amount">$11,400</span></div>
+      <div class="roi-row"><span class="item">Staff training and change management (40 hrs × $65/hr)</span><span class="amount">$2,600</span></div>
+      <div class="roi-row"><span class="item">Power BI dashboard build (80 hrs × $75/hr)</span><span class="amount">$6,000</span></div>
+      <div class="roi-row"><span class="item">Contingency (10%)</span><span class="amount">$3,800</span></div>
+      <div class="roi-total"><span>Total implementation cost</span><span>$41,800</span></div>
+      <div class="highlight-box">
+        Net 3-year value: $87,690 × 3 − $41,800 = $220,870 &nbsp;·&nbsp; ROI: 521% &nbsp;·&nbsp; Payback: ~5.8 months
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Karar Syed · Business Analyst Portfolio · Austin, TX</span>
+    <a href="https://linkedin.com/in/karar-syed-42153b318" target="_blank">LinkedIn ↗</a>
+  </div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'kpi') setTimeout(buildCharts, 50);
+}
+
+let chartsBuilt = false;
+function buildCharts() {
+  if (chartsBuilt) return;
+  chartsBuilt = true;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+  new Chart(document.getElementById('kpiChart1'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'New intakes', data: [18,21,24,27,29,31], backgroundColor: 'rgba(55,138,221,0.75)', borderColor: '#378ADD', borderWidth: 1, yAxisID: 'y' },
+        { label: 'Avg days to resolve', data: [8.4,7.1,5.8,4.2,3.0,2.1], type: 'line', borderColor: '#639922', borderDash: [5,3], borderWidth: 2, pointBackgroundColor: '#639922', pointRadius: 3, fill: false, tension: 0.3, yAxisID: 'y2' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { position: 'left', ticks: { font: { size: 11 }, callback: v => Math.round(v) }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        y2: { position: 'right', ticks: { font: { size: 11 }, callback: v => v.toFixed(1) + 'd' }, grid: { display: false } },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+  new Chart(document.getElementById('kpiChart2'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{ label: 'Retention rate', data: [74,76,79,83,87,89], borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 2, pointBackgroundColor: '#1D9E75', pointRadius: 4, fill: true, tension: 0.4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 60, max: 100, ticks: { font: { size: 11 }, callback: v => Math.round(v) + '%' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
